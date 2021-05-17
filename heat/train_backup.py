@@ -13,7 +13,7 @@ from torch_geometric.data import DataLoader
 import matplotlib.pyplot as plt
 
 from torchdiffeq import odeint_adjoint as odeint
-from graphpdes import Model, DynamicsFunction
+from graphpdes import ModelDirichlet, DynamicsFunction
 
 import utils
 
@@ -62,7 +62,7 @@ aggr_net = nn.Sequential(
     nn.Linear(args.hs_1, 1)
 )
 
-model = Model(aggr_net, msg_net)
+model = ModelDirichlet(aggr_net, msg_net)
 model.apply(utils.weights_init)
 F = DynamicsFunction(model).to(device)
 print("Num. of params: {:d}".format(utils.get_parameters_count(model)))
@@ -97,11 +97,11 @@ for epoch in range(args.epochs):
         with torch.no_grad():
             rel_pos = pos[edge_index[1]] - pos[edge_index[0]]
 
-        # bcs_dict = utils.concatenate_bcs_dicts(bcs_dicts, dataset, sim_inds)
+        bcs_dict = utils.concatenate_bcs_dicts(bcs_dicts, dataset, sim_inds)
         params_dict = {
             'edge_index': edge_index.to(device),
             'rel_pos': rel_pos.to(device),
-            # 'bcs_dict': bcs_dict
+            'bcs_dict': bcs_dict
         }
         F.update_params(params_dict)
 
